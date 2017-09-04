@@ -1,15 +1,13 @@
 ---
-title: API Reference
+title: Vendr API Reference
 
 language_tabs: # must be one of https://git.io/vQNgJ
-  - shell
-  - ruby
+  - curl
+  - http
   - python
-  - javascript
 
 toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
-  - <a href='https://github.com/tripit/slate'>Documentation Powered by Slate</a>
+  - <a href='#'>Vendr github</a>
 
 includes:
   - errors
@@ -19,221 +17,555 @@ search: true
 
 # Introduction
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+Welcome to the **Vendr API**!
 
-We have language bindings in Shell, Ruby, and Python! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+The source code for the API can be found [here](https://github.com/tallosan/vendr-api/tree/master/vendr)
 
-This example API documentation page was created with [Slate](https://github.com/tripit/slate). Feel free to edit it and use it as a base for your own API's documentation.
+**Introducing SuperDev:**
+
+An example is often worth a thousand words. As such, these docs will attempt to provide
+developers with as many as is necessary. To further illustrate our examples, we'll be
+using a test devloper named Super Dev to demonstrate API calls & handling.
 
 # Authentication
 
-> To authorize, use this code:
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
-
 ```python
-import kittn
+import requests
 
-api = kittn.authorize('meowmeowmeow')
+base_url = 'http://api.vendr.xyz/o/token/'
+api = requests.get(base_url)
 ```
 
 ```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
+# To get an `access_token` via Curl, we would do:
+curl -X POST -d "grant_type=password&username=<user_name>
+&password=<password>" -u"CLIENT_ID:CLIENT_SECRET" 
+http://api.vendr.xyz/o/token/
+
+# Using the syntax above, Super Dev can obtain an access token as follows:
+curl -X POST -d "grant_type=password&username=superdev@vendr.xyz
+&password=superpwd" -u"foOWPCONHldZXPnkZ1wVUEBemyVZp3dcARY4p7Lb:dGoXvLV0
+vU3EikGHUcBrRXhxLJyyLxW4jlReSmJC2UQbo8EYta5W1MWZsLfgVgHh5k5zkhuSprIIVL6T
+Z8x4qPplqieeO9C4gQqN8VMXvnFx64PlmLdZ7tpbRdapychk" 
+http://api.vendr.xyz/o/token/
 ```
 
-```javascript
-const kittn = require('kittn');
+> Don't forget the OAuth Key.
 
-let api = kittn.authorize('meowmeowmeow');
-```
+`http://api.vendr.xyz/o/token/`
 
-> Make sure to replace `meowmeowmeow` with your API key.
+Vendr uses the **OAuth 2 Protocol** for authentication. As such, authentication is all
+token based. Each User has two tokens:
 
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
+`access_token`, `refresh_token`
 
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
+All authentication is done using a user's `access_token`. To obtain one, we'll need
+to use the Vendr OAuth Application's client ID and secret, along with the user's
+own username and password.
 
-`Authorization: meowmeowmeow`
+
+**OAuth Keys**:
+
+`client_id`: foOWPCONHldZXPnkZ1wVUEBemyVZp3dcARY4p7Lb
+
+`client_secret`: dGoXvLV0vU3EikGHUcBrRXhxLJyyLxW4jlReSmJC2UQbo8EYta5W1MWZsLf
+gVgHh5k5zkhuSprIIVL6TZ8x4qPplqieeO9C4gQqN8VMXvnFx64PlmLdZ7tpb
+Rdapychk
 
 <aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
+Note, authentication must be done via a <code>user's</code> own credentials.
 </aside>
 
-# Kittens
+# Users
 
-## Get All Kittens
+This is an object representing a Vendr user
 
-```ruby
-require 'kittn'
+## The User object.
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
-
-```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
+> Example Response
 
 ```json
 [
   {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
+      "email": "tallosan@vendr.xyz", 
+      "id": 1, 
+      "join_date": "2017-08-04T00:45:02.454263Z", 
+      "password": "bcrypt_sha256$$2b$12$fVAYDPR3fs71sqDxYKg.fO.UMgMI/kUloiZboyxj04lLc0F6lLsNe", 
+      "quick_profile": {
+          "first_name": "Andrew", 
+          "last_name": "T", 
+          "prof_pic": "https://s3.ca-central-1.amazonaws.com/media.vendr/users/prof_pics/56c37365-9bfd-4169-b6ea-79cede5fa0b8"
+      }
   },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
+  { ... }
 ]
 ```
 
-This endpoint retrieves all kittens.
+User objects contain sensitive / personal information. As anyone can view a User
+object, it makes sense for us to hide this info from anyone but the actualy user
+who owns the object. Thus, some fields are protected and will **not** be included
+in the responses unless the correct authentication is provided.
 
-### HTTP Request
-
-`GET http://example.com/api/kittens`
-
-### Query Parameters
-
-Parameter | Default | Description
+Attribute | Type | Description
 --------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
+id | integer | The user's ID.
+email | string | The user's email address.
+password | string | <span style="color:##c1ef65">`protected`</span> The user's password. Note, this will be encrypted if the user accessing the user object does not have the correct auth.
+quick_profile | profile | `read only` A quickview of the user's profile.
+join_date | date | The date the user joined.
 
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
 
-## Get a Specific Kitten
+### HTTP Requests
 
-```ruby
-require 'kittn'
+List all users.
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
+<span style="color:#b93d6a">`GET`</span> `http://api.vendr.xyz/v1/users/`
 
-```python
-import kittn
 
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
-```
+## Create a User
+
+> HTTP Request
 
 ```shell
-curl "http://example.com/api/kittens/2"
-  -H "Authorization: meowmeowmeow"
+POST http://api.vendr.xyz/v1/users/
 ```
 
-```javascript
-const kittn = require('kittn');
+> Example Request
 
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
+```shell
+curl "http://api.vendr.xyz/v1/users/"
+     -X POST
+     -d {
+	    "email": "superdev@vendr.xyz",
+   	    "password": "superpwd",
+ 	    "profile": {
+	      "first_name": Super,
+	      "last_name": Dev
+	    }
+      }
 ```
 
-> The above command returns JSON structured like this:
+> Example Response
 
 ```json
+HTTP 201 Created
+
+curl "http://api.vendr.xyz/v1/users/"
+     -X POST
+     -d {
+	    "email": "superdev@vendr.xyz",
+   	    "password": <encrypted_password>,
+ 	    "quick_profile": {
+	      "first_name": Super,
+	      "last_name": Dev,
+	      "prof_pic": "https://s3.ca-central-1.amazonaws.com/media.vendr/users/defaults/default_user_prof.jpg"
+	    }
+      }
+```
+
+To create a user, we need to at least provide an email and a password.
+
+Note, we can set a user's profile attributes (e.g. <span style="color:#0099e5">first_name</span>) in the same call, and that this profile creation / update is only partial. I.e. we only have to pass as many fields as we have / want to. In the example case, notice how SuperDev only passes his first name and last.
+
+### Arguments
+
+Parameter | Type | Description
+--------- | ------- | -----------
+email | string | <span style="color:#fe5a1d">`required`</span> The user's email.
+password | string | <span style="color:#fe5a1d">`required`</span> The user's password.
+first_name | string | `optional` The user's first name.
+last_name | string | `optional` The user's last name.
+bio | string | `optional` The user's bio.
+location | string | `optional` The user's location.
+prof_pic | image | `optional` The user's profile pic.
+
+### Returns
+
+Returns the User object, with the Profile in quick view mode.
+
+
+## Retrieve a specific User
+
+> HTTP Request
+
+```shell
+GET http://api.vendr.xyz/v1/users/<user_pk>/
+```
+
+> Example Request
+
+```shell
+curl "http://api.vendr.xyz/v1/users/1/"
+     -X GET
+     -H "Authorization:Bearer <user_access_token>"
+```
+
+> Example Response
+
+```json
+HTTP 200 OK
+
 {
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
+    "email": "tallosan@vendr.xyz", 
+    "id": 1, 
+    "join_date": "2017-08-04T00:45:02.454263Z", 
+    "password": "bcrypt_sha256$$2b$12$fVAYDPR3fs71sqDxYKg.fO.UMgMI/kUloiZboyxj04lLc0F6lLsNe", 
+    "quick_profile": {
+        "first_name": "Andrew", 
+        "last_name": "T", 
+        "prof_pic": "https://s3.ca-central-1.amazonaws.com/media.vendr/users/prof_pics/56c37365-9bfd-4169-b6ea-79cede5fa0b8"
+    },
 }
 ```
 
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
-
-### HTTP Request
-
-`GET http://example.com/kittens/<ID>`
+Retrieve a specific user, based on the given user ID.
 
 ### URL Parameters
 
 Parameter | Description
 --------- | -----------
-ID | The ID of the kitten to retrieve
+user_pk | The ID of the user to retrieve
 
-## Delete a Specific Kitten
+### Returns
 
-```ruby
-require 'kittn'
+The User with the given ID.
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
-```
 
-```python
-import kittn
+## Update a specific User
 
-api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
-```
+> HTTP Request
 
 ```shell
-curl "http://example.com/api/kittens/2"
-  -X DELETE
-  -H "Authorization: meowmeowmeow"
+PUT http://api.vendr.xyz/v1/users/<user_pk>/
 ```
 
-```javascript
-const kittn = require('kittn');
+> Super Dev updates their email to "superdev_v2@vendr.xyz".
 
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
+> Example Request
+
+```shell
+curl -H "Content-Type: application/json"
+     -X PUT -d '{"email: "superdev_v2@vendr.xyz"}'
+     "http://api.vendr.xyz/v1/users/<user_pk>/"
+     -H "Authorization:Bearer <user_access_token>"
 ```
 
-> The above command returns JSON structured like this:
+> Example Response
 
 ```json
+HTTP 200 OK
+
 {
-  "id": 2,
-  "deleted" : ":("
+    "email": "superdev_v2@vendr.xyz", 
+    "id": 1, 
+    "join_date": "2017-08-04T00:45:02.454263Z", 
+    "password": "bcrypt_sha256$$2b$12$fVAYDPR3fs71sqDxYKg.fO.UMgMI/kUloiZboyxj04lLc0F6lLsNe", 
+    "quick_profile": {
+        "first_name": "Andrew", 
+        "last_name": "T", 
+        "prof_pic": "https://s3.ca-central-1.amazonaws.com/media.vendr/users/prof_pics/56c37365-9bfd-4169-b6ea-79cede5fa0b8"
+    }
 }
 ```
 
-This endpoint retrieves a specific kitten.
+Update a specific user, based on the given user ID.
 
-### HTTP Request
-
-`DELETE http://example.com/kittens/<ID>`
+Note, we cannot update <span style="color:#0099e5">`quick_profile`</span>, as it's read only. All other fields, however,
+are valid.
 
 ### URL Parameters
 
 Parameter | Description
 --------- | -----------
-ID | The ID of the kitten to delete
+user_pk | The ID of the user to retrieve
+
+### Returns
+
+The updated User object.
+
+
+## Delete a specific User
+
+> HTTP Request
+
+```shell
+DELETE http://api.vendr.xyz/v1/users/<user_pk>/
+```
+
+> Example Request
+
+```shell
+curl "http://api.vendr.xyz/v1/users/`user_pk`/
+     -X DELETE
+     -H "Authorization:Bearer <user_access_token>"
+```
+
+> Example Response
+
+```json
+HTTP 204 Deleted
+
+[]
+```
+
+Delete a specific user, based on the given user ID.
+
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+user_pk | The ID of the user to delete
+
+### Returns
+
+An empty JSON body, with HTTP response code 204.
+
+
+
+# user.Profile
+
+A Profile object.
+
+Created when a User object is created.
+
+## The Profile object.
+
+> Example Response
+
+```json
+{
+    "bio": This is my Bio.
+    "first_name": Super,
+    "last_name": Dev,
+    "location": "Toronto",
+    "prof_pic": "https://s3.ca-central-1.amazonaws.com/media.vendr/users/prof_pics/15034150-79cb-4291-a465-cd6f7d79344f"
+}
+```
+
+The Profile object contains any personal information about a user.
+
+
+Attribute | Type | Description
+--------- | ------- | -----------
+first_name | string | The user's first name.
+last_name | string | The user's last name.
+bio | string | The user's bio.
+location | string | The user's location.
+prof_pic | image | The user's profile pic.
+
+## Retrieve a user's Profile
+
+> HTTP Request
+
+```shell
+GET http://api.vendr.xyz/v1/users/<user_pk>/profile/
+```
+
+> Example Request
+
+```shell
+curl "http://api.vendr.xyz/v1/users/`user_pk`/profile/
+     -X GET
+     -H "Authorization:Bearer <user_access_token>"
+```
+
+> Example Response
+
+```json
+HTTP 200 OK
+
+{
+    "bio": This is my Bio.
+    "first_name": Super,
+    "last_name": Dev,
+    "location": "Toronto",
+    "prof_pic": "https://s3.ca-central-1.amazonaws.com/media.vendr/users/prof_pics/15034150-79cb-4291-a465-cd6f7d79344f"
+}
+```
+
+Retrieve the given User's full profile.
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+user_pk | The ID of the user to delete
+
+
+## Update a user's Profile
+
+> HTTP Request
+
+```shell
+PUT http://api.vendr.xyz/v1/users/<user_pk>/profile/
+```
+
+> Example Request
+
+```shell
+curl "http://api.vendr.xyz/v1/users/`user_pk`/profile/
+     -X PUT
+     -d '{"bio": "My new bio.", "last_name": "New Last Name"}'
+     -H "Authorization:Bearer <user_access_token>"
+```
+
+> Example Response
+
+```json
+HTTP 200 OK
+
+{
+    "bio": "My new bio."
+    "first_name": "Super",
+    "last_name": "New Last Name",
+    "location": "Toronto",
+    "prof_pic": "https://s3.ca-central-1.amazonaws.com/media.vendr/users/prof_pics/15034150-79cb-4291-a465-cd6f7d79344f"
+}
+```
+
+Update the given User's profile.
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+user_pk | The ID of the user to delete
+
+### Returns
+
+The updated Profile object.
+
+
+## Invalid Methods
+
+<span style="color:#b93d6a">POST</span> `http://api.vendr.xyz/v1/users/<user_pk>/profile`
+
+<span style="color:#b93d6a">DELETE</span> `http://api.vendr.xyz/v1/users/<user_pk>/profile/`
+
+
+# user.Notification
+
+A Notification object.
+
+Notifications are created behind the scenes in response to certain actions
+performed by users. We have a number of different kinds of notifications,
+however all have the same core API.
+
+## The Notification object.
+
+```json
+{
+    "contract": "4aa22aab-b829-4bfc-a85d-e9883276eb6e", 
+    "description": "Jana has sent you a new contract on your property 3000 Victoria Park Ave.", 
+    "id": "e7d57c2e-fe95-4d95-8a60-a0448fa14aae", 
+    "is_viewed": true, 
+    "recipient": 1, 
+    "timestamp": "2017-08-13T04:28:02.638879Z", 
+    "transaction": "f5740fc7-993f-434e-8e47-b96a5bfd50a7"
+}
+```
+
+Notifications contain information about the resources that they belong to
+and the action that triggered them. They also contain useful info about their
+relationship with the users they're involved with.
+
+Attribute | Type | Description
+--------- | ------- | -----------
+pk | uuid | The notification ID.
+description | string | Describes the notification's purpose. This is meant for users to see.
+`offer`,`contract` | uuid | This is the ID of the resource that prompted the notification's creation. Note, the field is named according to the resource that created it, ie if an Offer triggered this notification, the field will be named "offer".
+is_viewed | bool | Indicates whether or not e notification recipient has viewed it. Note, the recipient is responsible for changing this value.
+timestamp | date | The date this notification was created.
+transaction | uuid | `optional` The transaction that this notification belongs to. Only valid on transaction notifications.
+
+## Retrieve a user's Profile
+
+> HTTP Request
+
+```shell
+GET http://api.vendr.xyz/v1/users/<user_pk>/profile/
+```
+
+> Example Request
+
+```shell
+curl "http://api.vendr.xyz/v1/users/`user_pk`/profile/
+     -X GET
+     -H "Authorization:Bearer <user_access_token>"
+```
+
+> Example Response
+
+```json
+HTTP 200 OK
+
+{
+    "bio": This is my Bio.
+    "first_name": Super,
+    "last_name": Dev,
+    "location": "Toronto",
+    "prof_pic": "https://s3.ca-central-1.amazonaws.com/media.vendr/users/prof_pics/15034150-79cb-4291-a465-cd6f7d79344f"
+}
+```
+
+Retrieve the given User's full profile.
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+user_pk | The ID of the user to delete
+
+
+## Update a user's Profile
+
+> HTTP Request
+
+```shell
+PUT http://api.vendr.xyz/v1/users/<user_pk>/profile/
+```
+
+> Example Request
+
+```shell
+curl "http://api.vendr.xyz/v1/users/`user_pk`/profile/
+     -X PUT
+     -d '{"bio": "My new bio.", "last_name": "New Last Name"}'
+     -H "Authorization:Bearer <user_access_token>"
+```
+
+> Example Response
+
+```json
+HTTP 200 OK
+
+{
+    "bio": "My new bio."
+    "first_name": "Super",
+    "last_name": "New Last Name",
+    "location": "Toronto",
+    "prof_pic": "https://s3.ca-central-1.amazonaws.com/media.vendr/users/prof_pics/15034150-79cb-4291-a465-cd6f7d79344f"
+}
+```
+
+Update the given User's profile.
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+user_pk | The ID of the user to delete
+
+### Returns
+
+The updated Profile object.
+
+
+## Invalid Methods
+
+<span style="color:#b93d6a">POST</span> `http://api.vendr.xyz/v1/users/<user_pk>/profile`
+
+<span style="color:#b93d6a">DELETE</span> `http://api.vendr.xyz/v1/users/<user_pk>/profile/`
+
 
